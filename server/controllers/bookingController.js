@@ -111,7 +111,8 @@ export const getUserBookings = async (req, res) => {
 //function to fetch bookings data for admin dashboard
 export const getHotelBookings = async (req, res) => {
     try {
-        const hotel = await Hotel.findOne({owner: req.auth.userId});
+        const owner = req.user ? req.user._id : (req.auth?.userId || (typeof req.auth === 'function' ? req.auth().userId : null));
+        const hotel = await Hotel.findOne({owner});
 
         if (!hotel){
             return res.json({success: false, message: "Hotel not found"});

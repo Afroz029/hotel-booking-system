@@ -11,6 +11,8 @@ export const getUserData = async (req, res)=>{
     }
 }
 
+
+
 export const storeRecentSearchedCities = async (req, res)=>{
     try {
         const {recentSearchedCity} = req.body;
@@ -26,6 +28,6 @@ export const storeRecentSearchedCities = async (req, res)=>{
         res.json({success: true, message: "City Added"})
     } catch (error) {
         res.json({success: false, message: error.message})
-        console.error(message.error);
+        console.error(error.message);
     }
 }
