@@ -58,7 +58,7 @@ const HotelReg = () => {
                 <div className='w-full mt-4 max-w-60 mr-auto'>
                     <label htmlFor="city" className='font-medium text-gray-500'>City</label>
                     <select id="city" onChange={(e)=> setCity(e.target.value)} value={city} className='w-full p-2 mt-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer' required>
-                        <option>select city</option>
+                        <option value="">select city</option>
                         {cities.map((city) => (
                             <option key={city} value={city}>{city}</option>
                         ))}

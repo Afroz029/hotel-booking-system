@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Title from '../components/Title';
 import { assets, userBookingsDummyData } from '../assets/assets';
 import { useAppContext } from '../context/AppContext';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const MyBookings = () => {
     const [bookings, setBookings] = useState([]);
+    const [searchParams, setSearchParams] = useSearchParams();
     const {axios, getToken, user} = useAppContext();
+    const verifiedRef = useRef(false);
 
     const fetchUserBookings = async()=> {
         try {
@@ -20,6 +23,32 @@ const MyBookings = () => {
             toast.error(error.message);
         }
     }
+
+    // Check for session_id in query params and verify payment
+    useEffect(() => {
+        const sessionId = searchParams.get('session_id');
+        if (sessionId && user && !verifiedRef.current) {
+            verifiedRef.current = true;
+            (async () => {
+                try {
+                    const token = await getToken();
+                    const { data } = await axios.post(
+                        '/api/bookings/verify-stripe',
+                        { sessionId },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    if (data.success) {
+                        toast.success("Payment verified successfully!");
+                    }
+                    // Remove session_id from URL
+                    setSearchParams({}, { replace: true });
+                    fetchUserBookings();
+                } catch (err) {
+                    console.error("Verification error in MyBookings:", err);
+                }
+            })();
+        }
+    }, [searchParams, user]);
 
     //function to initialize stripe instance
     const handlePayment = async (bookingId) => {
@@ -57,14 +86,14 @@ const MyBookings = () => {
                 <div key={booking._id} className='grid grid-cols-1 md:grid-cols-[3fr_2fr_1fr] w-full border-b border-gray-300 py-6 first:border-t'>
                     {/*Hotel Details */}
                     <div className='flex flex-col md:flex-row'>
-                        <img src={booking.room.images[0]} alt="hotel-img" className='min-md:w-44 rounded shadow object-cover'/>
+                        <img src={booking.room?.images?.[0] || assets.roomImg1} alt="hotel-img" className='min-md:w-44 rounded shadow object-cover'/>
                         <div className='flex flex-col gap-1.5 max-md:mt-3 min-md:ml-4'>
-                            <p className='font-playfair text-2xl'>{booking.hotel.name} 
-                            <span className='font-inner text-sm'> ({booking.room.roomType})</span>
+                            <p className='font-playfair text-2xl'>{booking.hotel?.name || 'Hotel'} 
+                            <span className='font-inner text-sm'> ({booking.room?.roomType || 'Room'})</span>
                             </p>
                             <div className='flex items-center gap-1 text-sm text-gray-500'>
                                 <img src={assets.locationIcon} alt="" />
-                                <span>{booking.hotel.address}</span>
+                                <span>{booking.hotel?.address || ''}</span>
                             </div>
 
                             <div className='flex items-center gap-1 text-sm text-gray-500'>

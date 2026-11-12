@@ -243,7 +243,7 @@ const AllRooms = () => {
   const [openFilters, setOpenFilters] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const { rooms = [], navigate, currency } = useAppContext()
+  const { rooms = [], navigate, currency, loadingRooms } = useAppContext()
 
   const [selectedFilters, setSelectedFilters] = useState({
     roomType: [],
@@ -300,7 +300,7 @@ const AllRooms = () => {
   const matchesRoomType = (room) => {
     return (
       selectedFilters.roomType.length === 0 ||
-      selectedFilters.roomType.includes(room.type)
+      selectedFilters.roomType.includes(room.roomType || room.type)
     )
   }
 
@@ -451,11 +451,16 @@ const AllRooms = () => {
           </div>
         ))}
 
-        {filteredRooms.length === 0 && (
+        {loadingRooms ? (
+          <div className="py-24 flex flex-col items-center justify-center gap-3">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-primary"></div>
+            <p className="text-gray-500 text-sm">Loading available rooms...</p>
+          </div>
+        ) : filteredRooms.length === 0 ? (
           <p className="text-gray-500 mt-10">
             No rooms found. Try changing your filters.
           </p>
-        )}
+        ) : null}
       </div>
 
       {/* Filters */}

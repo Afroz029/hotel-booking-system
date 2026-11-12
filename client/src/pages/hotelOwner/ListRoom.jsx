@@ -11,20 +11,20 @@ const ListRoom = () => {
     //fetch rooms for the hotel owner
     const fetchRooms = async () => {
         try {
-        const {data} = await axios.get('api/rooms/owner', {headers: {Authorization: `Bearer ${await getToken()}`}});
-        if(data.success) {
-            setRooms(data.rooms);
-        }else {
-            toast.error(data.message);
+            const {data} = await axios.get('/api/rooms/owner', {headers: {Authorization: `Bearer ${await getToken()}`}});
+            if(data.success) {
+                setRooms(data.rooms);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message);
         }
-    } catch (error) {
-        toast.error(error.message);
-    }
     }
 
     //function to toggle room availability
     const toggleAvailability = async (roomId) => {
-        const {data} = await axios.post('api/rooms/toggle-availability', {roomId}, {headers: {Authorization: `Bearer ${await getToken()}`}});
+        const {data} = await axios.post('/api/rooms/toggle-availability', {roomId}, {headers: {Authorization: `Bearer ${await getToken()}`}});
         if(data.success) {
             toast.success(data.message);
             fetchRooms(); //refresh the room list

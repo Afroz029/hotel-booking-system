@@ -7,6 +7,8 @@ import Footer from './components/Footer'
 import AllRooms from './pages/AllRooms'
 import RoomDetails from './pages/RoomDetails'
 import MyBookings from './pages/MyBookings'
+import About from './pages/About'
+import Experience from './pages/Experience'
 
 import { useUser } from '@clerk/clerk-react'
 
@@ -67,6 +69,18 @@ const App = () => {
           <Route
             path='/rooms'
             element={<AllRooms />}
+          />
+
+          {/* Experience Page */}
+          <Route
+            path='/experience'
+            element={<Experience />}
+          />
+
+          {/* About Page */}
+          <Route
+            path='/about'
+            element={<About />}
           />
 
           {/* Individual Room Details */}

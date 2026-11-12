@@ -4,25 +4,32 @@ import { useAppContext } from '../context/AppContext';
 
 const Hero = () => {
 
-  const {axios, getToken, navigate, setSearchedCities} = useAppContext();
+  const {axios, getToken, navigate, setSearchedCities, user} = useAppContext();
   const [destination, setDestination] = useState("");
 
   const onSearch = async (e) => {
     e.preventDefault();
     navigate(`/rooms?destination=${destination}`);
 
-    //call api to save searched city
-    await axios.post('api/user/store-recent-search', {recentSearchedCity: destination}, {headers: {Authorization: `Bearer ${await getToken()}`}});
+    // Call API to save searched city if user is authenticated
+    if (user && destination) {
+      try {
+        await axios.post('/api/user/store-recent-search', {recentSearchedCity: destination}, {headers: {Authorization: `Bearer ${await getToken()}`}});
+      } catch (err) {
+        console.error("Error storing recent search:", err.message);
+      }
+    }
 
     // add destination to searched cities max 3
-    setSearchedCities(prevSearchedCities => {
-      const updatedSearchedCities = [...prevSearchedCities, destination];
-      if (updatedSearchedCities.length > 3) {
-        updatedSearchedCities.shift(); // remove the oldest city if more than 3
-      } 
-      return updatedSearchedCities;
-    });
-
+    if (destination) {
+      setSearchedCities(prevSearchedCities => {
+        const updatedSearchedCities = [...(prevSearchedCities || []), destination];
+        if (updatedSearchedCities.length > 3) {
+          updatedSearchedCities.shift(); // remove the oldest city if more than 3
+        } 
+        return updatedSearchedCities;
+      });
+    }
   }
 
   return (
@@ -69,7 +76,7 @@ const Hero = () => {
 
             <button className='flex items-center justify-center gap-1 rounded-md bg-black py-3 px-4 text-white my-auto cursor-pointer max-md:w-full max-md:py-1' >
                 <img src={assets.searchIcon} alt="" className='h-7'/>
-                <span>Check Availability</span>
+                <span>Search</span>
             </button>
         </form>
     </div>

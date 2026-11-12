@@ -1,13 +1,14 @@
 import User from "../models/User.js";
-import { clerkClient } from "@clerk/express";
+import { clerkClient, getAuth } from "@clerk/express";
 
 // Middleware to check user authentication and ensure user exists in MongoDB
 export const protect = async (req, res, next) => {
     try {
-        const { userId } = req.auth();
+        const auth = typeof getAuth === 'function' ? getAuth(req) : (typeof req.auth === 'function' ? req.auth() : req.auth);
+        const userId = auth?.userId;
 
         if (!userId) {
-            return res.json({ success: false, message: "not authenticated" });
+            return res.status(401).json({ success: false, message: "not authenticated" });
         }
 
         let user = await User.findById(userId);
@@ -20,14 +21,18 @@ export const protect = async (req, res, next) => {
                 const username = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || email.split("@")[0] || "User";
                 const image = clerkUser.imageUrl || "";
 
-                user = await User.create({
-                    _id: userId,
-                    username,
-                    email,
-                    image,
-                    role: "user",
-                    recentSearchedCities: []
-                });
+                user = await User.findByIdAndUpdate(
+                    userId,
+                    {
+                        _id: userId,
+                        username,
+                        email,
+                        image,
+                        role: "user",
+                        recentSearchedCities: []
+                    },
+                    { upsert: true, new: true }
+                );
             } catch (clerkErr) {
                 console.error("Error fetching/creating user from Clerk:", clerkErr.message);
                 return res.json({ success: false, message: "User not found in database and could not be synced from Clerk" });

@@ -1,33 +1,39 @@
+import User from "../models/User.js";
 
-
-
-export const getUserData = async (req, res)=>{
+export const getUserData = async (req, res) => {
     try {
-        const role = req.user.role;
-        const recentSearchedCities = req.user.recentSearchedCities;
-        res.json({success: true, role, recentSearchedCities})
+        const role = req.user.role || "user";
+        const recentSearchedCities = req.user.recentSearchedCities || [];
+        res.json({ success: true, role, recentSearchedCities });
     } catch (error) {
-        res.json({success: false, message: error.message})
+        res.json({ success: false, message: error.message });
     }
-}
+};
 
-
-
-export const storeRecentSearchedCities = async (req, res)=>{
+export const storeRecentSearchedCities = async (req, res) => {
     try {
-        const {recentSearchedCity} = req.body;
-        const user = await req.user;
+        const { recentSearchedCity } = req.body;
+        const user = req.user;
 
-        if (user.recentSearchedCities.length < 3) {
-            user.recentSearchedCities.push(recentSearchedCity)
-        } else {
-            user.recentSearchedCities.shift();
-            user.recentSearchedCities.push(recentSearchedCity);
+        if (!recentSearchedCity) {
+            return res.json({ success: true, message: "No city provided" });
         }
 
-        res.json({success: true, message: "City Added"})
+        let cities = Array.isArray(user.recentSearchedCities) ? [...user.recentSearchedCities] : [];
+
+        // If not already in list, push and limit to 3
+        if (!cities.includes(recentSearchedCity)) {
+            if (cities.length >= 3) {
+                cities.shift();
+            }
+            cities.push(recentSearchedCity);
+
+            await User.findByIdAndUpdate(user._id, { recentSearchedCities: cities });
+        }
+
+        res.json({ success: true, message: "City Added", recentSearchedCities: cities });
     } catch (error) {
-        res.json({success: false, message: error.message})
-        console.error(error.message);
+        console.error("storeRecentSearchedCities error:", error.message);
+        res.json({ success: false, message: error.message });
     }
-}
+};
